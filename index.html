@@ -451,9 +451,11 @@
 
         // ====== DAY SCHEDULE ======
         // Each day has 6 slots. Each slot can have multiple video IDs separated by "/"
-        // Format: "VIDEO_ID+START_TIME" to start at a specific second
-        // Example: "1FzdlwOWoJc+16" starts at 16 seconds
-        // Example: "ODxpHPiF2IU" starts at 0 seconds (default)
+        // Format: 
+        //   "VIDEO_ID" - plays from start to end
+        //   "VIDEO_ID+START" - starts at START seconds, plays to end
+        //   "VIDEO_ID+START~END" - starts at START seconds, ends at END seconds
+        // Example: "1FzdlwOWoJc+16~50" starts at 16s, ends at 50s
 
         const schedule = {
             // Sunday
@@ -474,7 +476,7 @@
                 ""
             ],
             // Friday
-            5: ["w1K0xqxl7Bo/3z_QAPB3XeA/1FzdlwOWoJc+16/1FzdlwOWoJc", "", "", "", "", ""],
+            5: ["w1K0xqxl7Bo/3z_QAPB3XeA/1FzdlwOWoJc+16~50/1FzdlwOWoJc", "", "", "", "", ""],
             // Saturday
             6: ["", "", "", "", "", ""]
         };
@@ -490,31 +492,41 @@
             return slot.split('/').filter(id => id.trim() !== "");
         }
 
-        // ====== FUNCTION TO EXTRACT VIDEO ID AND START TIME ======
+        // ====== FUNCTION TO EXTRACT VIDEO ID, START TIME AND END TIME ======
         function parseVideoEntry(entry) {
-            const parts = entry.split('+');
-            const videoId = parts[0];
-            const startTime = parts[1] ? parseInt(parts[1], 10) : 0;
-            return { videoId, startTime };
+            // Check for format: VIDEO_ID+START~END
+            const match = entry.match(/^([^+~]+)(?:\+(\d+))?(?:~(\d+))?$/);
+            
+            if (match) {
+                const videoId = match[1];
+                const startTime = match[2] ? parseInt(match[2], 10) : 0;
+                const endTime = match[3] ? parseInt(match[3], 10) : null;
+                return { videoId, startTime, endTime };
+            }
+            
+            // Fallback: just the video ID
+            return { videoId: entry, startTime: 0, endTime: null };
         }
 
         // ====== GET TODAY'S SCHEDULE ======
         const today = new Date().getDay();
-        const todayDate = new Date().toDateString(); // "Thu Jun 18 2026"
+        const todayDate = new Date().toDateString();
         const validSlots = getValidSlots(today);
 
         console.log(`📋 Valid slots for today: ${validSlots.length}`);
 
-        // Flatten all videos from all slots into a single array with start times
+        // Flatten all videos from all slots into arrays
         let allVideos = [];
         let allStartTimes = [];
+        let allEndTimes = [];
 
         validSlots.forEach(slot => {
             const entries = parseVideoSlot(slot);
             entries.forEach(entry => {
-                const { videoId, startTime } = parseVideoEntry(entry);
+                const { videoId, startTime, endTime } = parseVideoEntry(entry);
                 allVideos.push(videoId);
                 allStartTimes.push(startTime);
+                allEndTimes.push(endTime);
             });
         });
 
@@ -561,6 +573,8 @@
         let isTransitioning = false;
         let hasSeeked = false;
         let resumeTime = 0;
+        let endTimer = null;
+        let videoEndTime = null;
 
         // ====== UPDATE VIDEO COUNTER ======
         function updateCounter() {
@@ -577,12 +591,34 @@
             }
         }
 
+        // ====== CHECK IF VIDEO SHOULD END EARLY ======
+        function checkVideoEnd() {
+            if (!player || !player.getCurrentTime) return;
+            
+            const currentTime = player.getCurrentTime();
+            const endTime = allEndTimes[currentVideoIndex];
+            
+            if (endTime !== null && currentTime >= endTime) {
+                console.log(`⏹️ Video reached end time (${endTime}s). Advancing to next...`);
+                clearInterval(endTimer);
+                endTimer = null;
+                saveCurrentProgress();
+                loadNextVideo();
+            }
+        }
+
         // ====== FUNCTION TO LOAD SPECIFIC VIDEO ======
         function loadVideo(index, seekTime) {
             if (allVideos.length === 0) {
                 console.warn('⚠️ No videos scheduled for today.');
                 document.getElementById('status').innerHTML = '⏸ <span>●</span> NO CONTENT TODAY';
                 return;
+            }
+
+            // Clear any existing timer
+            if (endTimer) {
+                clearInterval(endTimer);
+                endTimer = null;
             }
 
             // Ensure index is within bounds
@@ -597,8 +633,9 @@
 
             const videoId = allVideos[currentVideoIndex];
             const startTime = seekTime !== undefined ? seekTime : (allStartTimes[currentVideoIndex] || 0);
+            videoEndTime = allEndTimes[currentVideoIndex] || null;
 
-            console.log(`🎬 Loading video ${currentVideoIndex + 1}/${allVideos.length}: ${videoId} (start: ${startTime}s)`);
+            console.log(`🎬 Loading video ${currentVideoIndex + 1}/${allVideos.length}: ${videoId} (start: ${startTime}s, end: ${videoEndTime || '∞'}s)`);
 
             if (player) {
                 isTransitioning = true;
@@ -606,9 +643,7 @@
                 player.loadVideoById(videoId);
                 player.playVideo();
 
-                // If we have a seek time, use it after video loads
                 if (startTime > 0) {
-                    // Will be handled in onPlayerStateChange
                     resumeTime = startTime;
                 } else {
                     resumeTime = 0;
@@ -629,12 +664,20 @@
 
         // ====== FUNCTION TO LOAD NEXT VIDEO ======
         function loadNextVideo() {
+            if (endTimer) {
+                clearInterval(endTimer);
+                endTimer = null;
+            }
             saveCurrentProgress();
             loadVideo(currentVideoIndex + 1);
         }
 
         // ====== FUNCTION TO LOAD PREVIOUS VIDEO ======
         function loadPreviousVideo() {
+            if (endTimer) {
+                clearInterval(endTimer);
+                endTimer = null;
+            }
             saveCurrentProgress();
             loadVideo(currentVideoIndex - 1);
         }
@@ -652,30 +695,27 @@
             let startTime = 0;
 
             if (saved && saved.date === todayDate) {
-                // Same day - restore progress
                 startIndex = Math.min(saved.index, allVideos.length - 1);
                 startTime = saved.time || 0;
                 console.log(`🔄 Restoring progress: video ${startIndex + 1}/${allVideos.length}, time ${startTime}s`);
             } else if (saved && saved.date !== todayDate) {
                 console.log(`📅 Different day (${saved.date} vs ${todayDate}). Starting from beginning.`);
-                // Different day - start from beginning
                 startIndex = 0;
                 startTime = allStartTimes[0] || 0;
-                // Clear old progress
                 localStorage.removeItem(STORAGE_KEY);
             } else {
-                // No saved progress
                 startIndex = 0;
                 startTime = allStartTimes[0] || 0;
             }
 
             currentVideoIndex = startIndex;
             updateCounter();
+            videoEndTime = allEndTimes[startIndex] || null;
 
             const videoId = allVideos[startIndex];
             const finalStartTime = startTime > 0 ? startTime : (allStartTimes[startIndex] || 0);
 
-            console.log(`🎬 Starting with video ${startIndex + 1}/${allVideos.length}: ${videoId} (start: ${finalStartTime}s)`);
+            console.log(`🎬 Starting with video ${startIndex + 1}/${allVideos.length}: ${videoId} (start: ${finalStartTime}s, end: ${videoEndTime || '∞'}s)`);
 
             player = new YT.Player('player', {
                 width: '560',
@@ -706,7 +746,6 @@
                 statusOriginal = statusElement.innerHTML;
             }
 
-            // Save progress after video starts
             setTimeout(() => {
                 saveCurrentProgress();
             }, 3000);
@@ -735,6 +774,16 @@
                     }
                 }
 
+                // Start timer to check for end time
+                if (allEndTimes[currentVideoIndex] !== null) {
+                    if (endTimer) {
+                        clearInterval(endTimer);
+                        endTimer = null;
+                    }
+                    endTimer = setInterval(checkVideoEnd, 500);
+                    console.log(`⏱️ End timer started for video ${currentVideoIndex + 1} (ends at ${allEndTimes[currentVideoIndex]}s)`);
+                }
+
                 if (!messageActive) {
                     const statusElement = document.getElementById('status');
                     statusElement.innerHTML = '▶ <span>●</span> PLAYING';
@@ -745,6 +794,10 @@
 
             if (event.data === YT.PlayerState.ENDED) {
                 console.log('📯 Video ended. Advancing to next...');
+                if (endTimer) {
+                    clearInterval(endTimer);
+                    endTimer = null;
+                }
                 saveCurrentProgress();
                 loadNextVideo();
             }
@@ -768,6 +821,10 @@
             }
 
             setTimeout(() => {
+                if (endTimer) {
+                    clearInterval(endTimer);
+                    endTimer = null;
+                }
                 saveCurrentProgress();
                 loadNextVideo();
             }, 3000);
@@ -889,10 +946,14 @@
             if (player && player.getCurrentTime) {
                 saveCurrentProgress();
             }
-        }, 5000); // Save every 5 seconds
+        }, 5000);
 
         // ====== SAVE PROGRESS BEFORE PAGE UNLOADS ======
         window.addEventListener('beforeunload', function() {
+            if (endTimer) {
+                clearInterval(endTimer);
+                endTimer = null;
+            }
             saveCurrentProgress();
         });
 
