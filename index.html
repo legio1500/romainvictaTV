@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="en">
 
 <head>
     <meta charset="UTF-8">
@@ -9,7 +9,7 @@
     <!-- Favicon -->
     <link rel="icon" type="image/png" href="favicon.png">
 
-    <!-- Fonte Cinzel -->
+    <!-- Font Cinzel -->
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&display=swap" rel="stylesheet">
 
     <style>
@@ -25,7 +25,7 @@
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            background-image: url("background.jpg"); /* Fallback */
+            background-image: url("background.jpg");
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
@@ -34,7 +34,7 @@
             transition: background-image 0.5s ease;
         }
 
-        /* Camada escura */
+        /* Dark overlay */
         body::before {
             content: "";
             position: fixed;
@@ -43,7 +43,7 @@
             z-index: 1;
         }
 
-        /* Container principal */
+        /* Main container */
         #player-container {
             padding: 20px;
             background: rgba(255, 255, 255, 0.08);
@@ -62,7 +62,7 @@
             opacity: 0.15;
         }
 
-        /* Título */
+        /* Title */
         #titulo {
             text-align: center;
             color: #f0e6d3;
@@ -70,13 +70,13 @@
             font-weight: 700;
             letter-spacing: 4px;
             text-transform: uppercase;
-            text-shadow: 0 0 30px rgba(255, 215, 0, 0.3);
+            text-shadow: 0 0 30px rgba(200, 0, 0, 0.3);
             padding-bottom: 10px;
             transition: all 0.5s ease;
         }
 
         #titulo span {
-            color: #f03;
+            color: #dc143c;
         }
 
         /* Player */
@@ -85,10 +85,10 @@
             height: 394px;
             border-radius: 14px;
             overflow: hidden;
-            box-shadow: 0 0 30px rgba(255, 215, 0, 0.15);
+            box-shadow: 0 0 30px rgba(200, 0, 0, 0.15);
         }
 
-        /* Indicador de status */
+        /* Status indicator */
         #status {
             text-align: center;
             color: rgba(255, 255, 255, 0.5);
@@ -100,15 +100,15 @@
         }
 
         #status span {
-            color: #f03;
+            color: #dc143c;
             font-weight: 700;
         }
 
-        /* Mensagem de áudio - estilo especial */
+        /* Audio message - special style */
         #status.audio-message {
-            color: #ffd700;
+            color: #dc143c;
             font-size: 0.9rem;
-            text-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
+            text-shadow: 0 0 20px rgba(200, 0, 0, 0.3);
             animation: pulse 1.5s ease-in-out infinite;
         }
 
@@ -121,10 +121,10 @@
             50% { opacity: 0.5; }
         }
 
-        /* Título com mensagem de áudio */
+        /* Title with audio message */
         #titulo.audio-message {
-            color: #ffd700;
-            text-shadow: 0 0 40px rgba(255, 215, 0, 0.5);
+            color: #dc143c;
+            text-shadow: 0 0 40px rgba(200, 0, 0, 0.5);
             animation: pulse 1.5s ease-in-out infinite;
         }
 
@@ -132,17 +132,17 @@
             color: #ff6b6b;
         }
 
-        /* ===== BOTÃO DE ÁUDIO MOBILE ===== */
+        /* ===== MOBILE AUDIO BUTTON ===== */
         #audio-toggle {
-            display: none; /* Escondido por padrão */
+            display: none;
             position: absolute;
             bottom: 80px;
             left: 50%;
             transform: translateX(-50%);
             z-index: 10;
             padding: 16px 32px;
-            background: linear-gradient(135deg, #ffd700, #f0a500);
-            color: #1a1a1a;
+            background: linear-gradient(135deg, #dc143c, #8b0000);
+            color: #fff;
             font-family: 'Cinzel', serif;
             font-weight: 700;
             font-size: 1.2rem;
@@ -150,7 +150,7 @@
             border: none;
             border-radius: 50px;
             cursor: pointer;
-            box-shadow: 0 0 40px rgba(255, 215, 0, 0.4);
+            box-shadow: 0 0 40px rgba(200, 0, 0, 0.4);
             transition: all 0.3s ease;
             text-transform: uppercase;
             animation: pulse 1.5s ease-in-out infinite;
@@ -158,7 +158,7 @@
 
         #audio-toggle:hover {
             transform: translateX(-50%) scale(1.05);
-            box-shadow: 0 0 60px rgba(255, 215, 0, 0.6);
+            box-shadow: 0 0 60px rgba(200, 0, 0, 0.6);
         }
 
         #audio-toggle:active {
@@ -166,16 +166,54 @@
         }
 
         #audio-toggle.muted {
-            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+            background: linear-gradient(135deg, #dc143c, #8b0000);
             color: #fff;
-            box-shadow: 0 0 40px rgba(255, 107, 107, 0.4);
+            box-shadow: 0 0 40px rgba(200, 0, 0, 0.4);
         }
 
         #audio-toggle.audio-activated {
-            display: none !important; /* Some depois de ativado */
+            display: none !important;
         }
 
-        /* Responsividade */
+        /* ===== ABOUT BUTTON ===== */
+        #about-button {
+            display: block;
+            margin: 20px auto 0;
+            padding: 12px 35px;
+            background: transparent;
+            border: 2px solid rgba(200, 0, 0, 0.3);
+            border-radius: 50px;
+            color: #f0e6d3;
+            font-family: 'Cinzel', serif;
+            font-size: 0.9rem;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            width: auto;
+        }
+
+        #about-button:hover {
+            background: rgba(200, 0, 0, 0.15);
+            border-color: #dc143c;
+            transform: translateY(-2px);
+            box-shadow: 0 0 30px rgba(200, 0, 0, 0.15);
+            color: #dc143c;
+        }
+
+        #about-button:active {
+            transform: scale(0.97);
+        }
+
+        .button-wrapper {
+            text-align: center;
+            margin-top: 5px;
+        }
+
+        /* Responsiveness */
         @media (max-width: 768px) {
             #player {
                 width: 90vw;
@@ -196,12 +234,16 @@
                 font-size: 0.7rem;
             }
 
-            /* Mostra o botão no mobile */
             #audio-toggle {
                 display: block;
                 bottom: 70px;
                 padding: 14px 24px;
                 font-size: 1rem;
+            }
+
+            #about-button {
+                padding: 10px 28px;
+                font-size: 0.8rem;
             }
         }
 
@@ -224,10 +266,15 @@
                 padding: 12px 20px;
                 font-size: 0.8rem;
             }
+
+            #about-button {
+                padding: 8px 20px;
+                font-size: 0.7rem;
+                letter-spacing: 1px;
+            }
         }
 
         @media (min-width: 769px) {
-            /* Esconde o botão no desktop */
             #audio-toggle {
                 display: none !important;
             }
@@ -238,7 +285,7 @@
 <body>
 
     <div id="player-container">
-        <!-- TÍTULO -->
+        <!-- TITLE -->
         <div id="titulo">Roma <span>Invicta</span> TV</div>
 
         <div id="player"></div>
@@ -246,7 +293,12 @@
         <!-- STATUS -->
         <div id="status">▶ <span>●</span> LIVE</div>
 
-        <!-- BOTÃO DE ÁUDIO MOBILE -->
+        <!-- ABOUT BUTTON -->
+        <div class="button-wrapper">
+            <a href="about.html" id="about-button">🏛️ About & Credits</a>
+        </div>
+
+        <!-- MOBILE AUDIO BUTTON -->
         <button id="audio-toggle" class="muted">
             🔊 CLICK HERE TO TURN ON SOUND
         </button>
@@ -256,7 +308,7 @@
     <script src="https://www.youtube.com/iframe_api"></script>
 
     <script>
-        // ====== FUNDO ALEATÓRIO ======
+        // ====== RANDOM BACKGROUND ======
         (function() {
             const backgrounds = [
                 "background1.jpg",
@@ -267,36 +319,33 @@
                 "background6.jpg"
             ];
 
-            // Escolhe um índice aleatório
-            const indiceAleatorio = Math.floor(Math.random() * backgrounds.length);
-            const imagemEscolhida = backgrounds[indiceAleatorio];
+            const randomIndex = Math.floor(Math.random() * backgrounds.length);
+            const chosenImage = backgrounds[randomIndex];
 
-            // Aplica o fundo no body
-            document.body.style.backgroundImage = `url("${imagemEscolhida}")`;
+            document.body.style.backgroundImage = `url("${chosenImage}")`;
 
-            // (Opcional) Mostra no console qual imagem foi escolhida
-            console.log(`🎨 Fundo selecionado: ${imagemEscolhida} (${indiceAleatorio + 1}/6)`);
+            console.log(`🎨 Background selected: ${chosenImage} (${randomIndex + 1}/6)`);
         })();
 
-        // ====== VÍDEOS ======
+        // ====== VIDEOS ======
         const videos = [
             "ODxpHPiF2IU",
             "1kfxiX5aIZc",
             "3z_QAPB3XeA"
         ];
 
-        let indice = 0;
+        let index = 0;
         let player;
-        let mensagemAtiva = false;
-        let tituloOriginal = "Roma Invicta TV";
+        let messageActive = false;
+        let titleOriginal = "Roma Invicta TV";
         let statusOriginal = '';
-        let somAtivado = false; // Controla se o áudio já foi ativado
+        let soundActivated = false;
 
         function onYouTubeIframeAPIReady() {
             player = new YT.Player('player', {
                 width: '560',
                 height: '315',
-                videoId: videos[indice],
+                videoId: videos[index],
                 playerVars: {
                     autoplay: 1,
                     controls: 1,
@@ -316,27 +365,27 @@
         }
 
         function onPlayerStateChange(event) {
-            // Quando o vídeo termina
+            // When video ends
             if (event.data === YT.PlayerState.ENDED) {
-                indice++;
-                if (indice >= videos.length) {
-                    indice = 0;
+                index++;
+                if (index >= videos.length) {
+                    index = 0;
                 }
-                player.loadVideoById(videos[indice]);
+                player.loadVideoById(videos[index]);
             }
 
-            // Quando o vídeo começa a tocar
+            // When video starts playing
             if (event.data === YT.PlayerState.PLAYING) {
-                if (!mensagemAtiva) {
+                if (!messageActive) {
                     document.getElementById('status').innerHTML = '▶ <span>●</span> PLAYING';
                     document.getElementById('status').className = '';
                     statusOriginal = '▶ <span>●</span> PLAYING';
                 }
             }
 
-            // Quando pausado
+            // When paused
             if (event.data === YT.PlayerState.PAUSED) {
-                if (!mensagemAtiva) {
+                if (!messageActive) {
                     document.getElementById('status').innerHTML = '⏸ <span>●</span> PAUSED';
                     document.getElementById('status').className = '';
                     statusOriginal = '⏸ <span>●</span> PAUSED';
@@ -345,53 +394,49 @@
         }
 
         function onPlayerError(event) {
-            console.log('Erro no player:', event.data);
-            if (!mensagemAtiva) {
+            console.log('Player error:', event.data);
+            if (!messageActive) {
                 document.getElementById('status').innerHTML = '⚠️ <span>●</span> ERROR - Next video...';
                 document.getElementById('status').className = '';
             }
 
             setTimeout(() => {
-                indice++;
-                if (indice >= videos.length) {
-                    indice = 0;
+                index++;
+                if (index >= videos.length) {
+                    index = 0;
                 }
-                player.loadVideoById(videos[indice]);
+                player.loadVideoById(videos[index]);
             }, 3000);
         }
 
-        // ====== FUNÇÃO PARA ATIVAR O ÁUDIO (MOBILE) ======
-        function ativarAudio() {
-            if (player && !somAtivado) {
-                // Tenta ativar o som
+        // ====== FUNCTION TO ACTIVATE AUDIO (MOBILE) ======
+        function activateAudio() {
+            if (player && !soundActivated) {
                 player.unMute();
-                somAtivado = true;
+                soundActivated = true;
 
-                // Esconde o botão
-                const botao = document.getElementById('audio-toggle');
-                botao.classList.add('audio-activated');
-                botao.style.display = 'none';
+                const button = document.getElementById('audio-toggle');
+                button.classList.add('audio-activated');
+                button.style.display = 'none';
 
-                // Mostra mensagem de confirmação no status (rápido)
                 const statusElement = document.getElementById('status');
                 statusElement.innerHTML = '🔊 <span>●</span> AUDIO ENABLED';
                 statusElement.className = 'audio-message';
 
-                // Volta ao normal após 2 segundos
                 setTimeout(() => {
-                    if (!mensagemAtiva) {
+                    if (!messageActive) {
                         statusElement.innerHTML = statusOriginal || '▶ <span>●</span> PLAYING';
                         statusElement.className = '';
                     }
                 }, 2000);
 
-                console.log('✅ Áudio ativado no mobile!');
+                console.log('✅ Audio activated on mobile!');
             }
         }
 
-        // ====== FUNÇÃO PARA MOSTRAR MENSAGEM DE ÁUDIO ======
-        function mostrarMensagemAudio() {
-            mensagemAtiva = true;
+        // ====== FUNCTION TO SHOW AUDIO MESSAGE ======
+        function showAudioMessage() {
+            messageActive = true;
 
             const statusElement = document.getElementById('status');
             statusOriginal = statusElement.innerHTML;
@@ -401,26 +446,25 @@
 
             document.title = '🔊 ENABLE AUDIO ON PLAYER';
 
-            const tituloElement = document.getElementById('titulo');
-            tituloElement.innerHTML = '🔊 <span>ENABLE</span> AUDIO';
-            tituloElement.className = 'audio-message';
+            const titleElement = document.getElementById('titulo');
+            titleElement.innerHTML = '🔊 <span>ENABLE</span> AUDIO';
+            titleElement.className = 'audio-message';
 
-            // Mostra o botão mobile automaticamente
-            const botao = document.getElementById('audio-toggle');
+            const button = document.getElementById('audio-toggle');
             if (window.innerWidth <= 768) {
-                botao.style.display = 'block';
-                botao.classList.add('muted');
+                button.style.display = 'block';
+                button.classList.add('muted');
             }
 
-            // Após 15 segundos, volta ao normal
+            // After 15 seconds, return to normal
             setTimeout(() => {
-                voltarAoNormal();
+                returnToNormal();
             }, 15000);
         }
 
-        // ====== FUNÇÃO PARA VOLTAR AO NORMAL ======
-        function voltarAoNormal() {
-            mensagemAtiva = false;
+        // ====== FUNCTION TO RETURN TO NORMAL ======
+        function returnToNormal() {
+            messageActive = false;
 
             const statusElement = document.getElementById('status');
             statusElement.innerHTML = statusOriginal || '▶ <span>●</span> PLAYING';
@@ -428,66 +472,65 @@
 
             document.title = 'Roma Invicta TV';
 
-            const tituloElement = document.getElementById('titulo');
-            tituloElement.innerHTML = 'Roma <span>Invicta</span> TV';
-            tituloElement.className = '';
+            const titleElement = document.getElementById('titulo');
+            titleElement.innerHTML = 'Roma <span>Invicta</span> TV';
+            titleElement.className = '';
 
-            // Se o áudio já foi ativado, esconde o botão
-            if (somAtivado) {
-                const botao = document.getElementById('audio-toggle');
-                botao.style.display = 'none';
+            if (soundActivated) {
+                const button = document.getElementById('audio-toggle');
+                button.style.display = 'none';
             }
 
             if (player && player.getPlayerState) {
-                const estado = player.getPlayerState();
-                if (estado === YT.PlayerState.PLAYING) {
+                const state = player.getPlayerState();
+                if (state === YT.PlayerState.PLAYING) {
                     statusElement.innerHTML = '▶ <span>●</span> PLAYING';
-                } else if (estado === YT.PlayerState.PAUSED) {
+                } else if (state === YT.PlayerState.PAUSED) {
                     statusElement.innerHTML = '⏸ <span>●</span> PAUSED';
                 }
             }
         }
 
-        // ====== EFEITO DE OCULTAR ======
-        let temporizadorMouse;
+        // ====== HIDE ON MOUSE LEAVE ======
+        let mouseTimer;
         const container = document.getElementById("player-container");
 
         container.addEventListener("mouseenter", () => {
             container.classList.remove("oculto");
-            clearTimeout(temporizadorMouse);
+            clearTimeout(mouseTimer);
         });
 
         container.addEventListener("mouseleave", () => {
-            clearTimeout(temporizadorMouse);
-            temporizadorMouse = setTimeout(() => {
+            clearTimeout(mouseTimer);
+            mouseTimer = setTimeout(() => {
                 container.classList.add("oculto");
             }, 2000);
         });
 
-        // ====== GARANTIR AUTOPLAY (fallback) ======
+        // ====== AUTOPLAY FALLBACK ======
         setTimeout(() => {
             if (player && player.getPlayerState && player.getPlayerState() === -1) {
                 player.playVideo();
             }
         }, 3000);
 
-        // ====== INICIALIZAR MENSAGEM DE ÁUDIO ======
+        // ====== INITIALIZE AUDIO MESSAGE ======
         window.addEventListener('load', function() {
             setTimeout(() => {
-                mostrarMensagemAudio();
+                showAudioMessage();
             }, 1000);
         });
 
-        // ====== EVENTO DO BOTÃO MOBILE ======
-        document.getElementById('audio-toggle').addEventListener('click', ativarAudio);
+        // ====== MOBILE BUTTON EVENT ======
+        document.getElementById('audio-toggle').addEventListener('click', activateAudio);
 
-        // ====== DETECTA MUDANÇA DE TAMANHO DA TELA ======
+        // ====== DETECT WINDOW RESIZE ======
         window.addEventListener('resize', function() {
-            const botao = document.getElementById('audio-toggle');
-            if (window.innerWidth <= 768 && !somAtivado && mensagemAtiva) {
-                botao.style.display = 'block';
-            } else if (window.innerWidth > 768 || somAtivado) {
-                botao.style.display = 'none';
+            const button = document.getElementById('audio-toggle');
+            if (window.innerWidth <= 768 && !soundActivated && messageActive) {
+                button.style.display = 'block';
+            } else if (window.innerWidth > 768 || soundActivated) {
+                button.style.display = 'none';
             }
         });
     </script>
