@@ -754,7 +754,6 @@
 
         // ====== PARSE DURATION STRING ======
         function parseDuration(durationStr) {
-            // durationStr format: "XmYs" or "Xm" or "Xs"
             const match = durationStr.match(/(?:(\d+)m)?(?:(\d+)s)?/);
             if (!match) return 0;
             const minutes = parseInt(match[1]) || 0;
@@ -768,8 +767,6 @@
             const videos = [];
 
             for (const line of lines) {
-                // Format: URL |@Creator|Duration|category1|category2|...
-                // Example: https://www.youtube.com/watch?v=PZu6QOottK4 |@LectionesAntiquae|49m26s|audiobook|
                 const parts = line.split('|').map(p => p.trim());
                 if (parts.length < 4) continue;
 
@@ -778,7 +775,6 @@
                 const durationStr = parts[2];
                 const categories = [];
 
-                // Collect all categories (from index 3 onwards, ignoring empty)
                 for (let i = 3; i < parts.length; i++) {
                     if (parts[i]) {
                         categories.push(parts[i]);
@@ -815,6 +811,11 @@
         let filteredVideos = [];
         let currentFilteredIndex = 0;
         let videoList = [];
+        let playerReady = false; // Flag to know when player is ready
+        let player = null;
+        let messageActive = false;
+        let statusOriginal = '';
+        let soundActivated = false;
 
         // ====== LOAD VIDEOLIST.TXT ======
         function loadVideoList() {
@@ -828,14 +829,42 @@
                 .then(text => {
                     videoList = parseVideoList(text);
                     console.log(`📋 Loaded ${videoList.length} videos from videolist.txt`);
-                    applyFilters();
-                    initializePlayer();
+                    // Apply initial filters (no filters = all videos except audiobooks)
+                    applyInitialFilters();
                 })
                 .catch(error => {
                     console.error('Error loading videolist.txt:', error);
                     document.getElementById('status').innerHTML = '⚠️ <span>●</span> ERROR LOADING VIDEOLIST';
                     document.getElementById('total-counter').textContent = '0';
                 });
+        }
+
+        // ====== APPLY INITIAL FILTERS (exclude audiobooks) ======
+        function applyInitialFilters() {
+            // Start with no category filters, but exclude audiobooks
+            // We'll apply this by filtering out audiobooks from the default list
+            filteredVideos = videoList.filter(video => !video.categories.includes('audiobook'));
+
+            if (filteredVideos.length === 0) {
+                // If no videos found (fallback), use all videos
+                filteredVideos = videoList;
+            }
+
+            // Shuffle the list for random initial play
+            shuffleArray(filteredVideos);
+
+            console.log(`📊 Initial filtered (exclude audiobooks): ${filteredVideos.length} videos`);
+            updateUI();
+            initializePlayer();
+        }
+
+        // ====== SHUFFLE ARRAY ======
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
         }
 
         // ====== SAVE / LOAD RESUME STATE ======
@@ -873,11 +902,19 @@
             const hasCategoryFilter = selectedCategories.size > 0;
             const hasDurationFilter = selectedDuration !== Infinity;
 
+            // Don't filter audiobooks out if they're selected
+            const includeAudiobooks = selectedCategories.has('audiobook');
+
             filteredVideos = videoList.filter(video => {
                 // Category filter (OR logic)
                 if (hasCategoryFilter) {
                     const matchesCategory = video.categories.some(cat => selectedCategories.has(cat));
                     if (!matchesCategory) return false;
+                } else {
+                    // If no category filter, exclude audiobooks
+                    if (video.categories.includes('audiobook') && !includeAudiobooks) {
+                        return false;
+                    }
                 }
 
                 // Duration filter - Audiobook ignores duration
@@ -888,14 +925,28 @@
                 return true;
             });
 
+            // Shuffle when filters are applied
+            shuffleArray(filteredVideos);
+
             console.log(`📊 Filtered: ${filteredVideos.length} videos (from ${videoList.length})`);
 
-            // Reset to first video if current index is out of bounds
-            if (currentFilteredIndex >= filteredVideos.length) {
-                currentFilteredIndex = 0;
+            if (filteredVideos.length === 0) {
+                document.getElementById('status').innerHTML = '⏸ <span>●</span> NO VIDEOS MATCH FILTERS';
+                document.getElementById('video-counter').textContent = '0';
+                document.getElementById('total-counter').textContent = '0';
+                return;
             }
 
+            currentFilteredIndex = 0;
             updateUI();
+
+            // Load the first video if player is ready
+            if (playerReady && player) {
+                loadFilteredVideo(0);
+            } else {
+                // Store for later when player is ready
+                window.pendingVideoIndex = 0;
+            }
         }
 
         // ====== UPDATE UI ======
@@ -913,11 +964,6 @@
 
         // ====== INITIALIZE PLAYER ======
         function initializePlayer() {
-            if (filteredVideos.length === 0) {
-                document.getElementById('status').innerHTML = '⏸ <span>●</span> NO VIDEOS MATCH FILTERS';
-                return;
-            }
-
             // Check for saved progress
             const saved = loadProgress();
             let startIndex = 0;
@@ -938,25 +984,9 @@
 
             console.log(`🎬 Starting with filtered video ${startIndex + 1}/${filteredVideos.length}: ${video.videoId}`);
 
-            if (player) {
-                player.loadVideoById(video.videoId);
-                player.playVideo();
-            } else {
-                // Player will be created in onYouTubeIframeAPIReady
-                // But we need to store the initial video ID
-                window.initialVideoId = video.videoId;
-            }
-
-            const statusElement = document.getElementById('status');
-            if (!messageActive) {
-                statusElement.innerHTML = '▶ <span>●</span> PLAYING';
-                statusElement.className = '';
-                statusOriginal = statusElement.innerHTML;
-            }
-
-            setTimeout(() => {
-                saveCurrentProgress();
-            }, 3000);
+            // Store the initial video ID for when the player is ready
+            window.initialVideoId = video.videoId;
+            window.pendingVideoIndex = startIndex;
         }
 
         // ====== LOAD FILTERED VIDEO ======
@@ -977,9 +1007,12 @@
 
             console.log(`🎬 Loading filtered video ${currentFilteredIndex + 1}/${filteredVideos.length}: ${video.videoId}`);
 
-            if (player) {
+            if (playerReady && player) {
                 player.loadVideoById(video.videoId);
                 player.playVideo();
+            } else {
+                // Store for later
+                window.pendingVideoIndex = currentFilteredIndex;
             }
 
             const statusElement = document.getElementById('status');
@@ -993,31 +1026,29 @@
         // ====== LOAD NEXT / PREVIOUS ======
         function loadNextFilteredVideo() {
             if (filteredVideos.length === 0) return;
-            saveCurrentProgress();
+            if (playerReady && player) {
+                saveCurrentProgress();
+            }
             loadFilteredVideo(currentFilteredIndex + 1);
         }
 
         function loadPreviousFilteredVideo() {
             if (filteredVideos.length === 0) return;
-            saveCurrentProgress();
+            if (playerReady && player) {
+                saveCurrentProgress();
+            }
             loadFilteredVideo(currentFilteredIndex - 1);
         }
 
         // ====== SAVE CURRENT PROGRESS ======
         function saveCurrentProgress() {
-            if (player && player.getCurrentTime) {
+            if (playerReady && player && player.getCurrentTime) {
                 const currentTime = player.getCurrentTime();
                 saveProgress(currentFilteredIndex, currentTime);
             } else {
                 saveProgress(currentFilteredIndex, 0);
             }
         }
-
-        // ====== PLAYER VARIABLES ======
-        let player;
-        let messageActive = false;
-        let statusOriginal = '';
-        let soundActivated = false;
 
         // ====== YOUTUBE IFrame API ======
         function onYouTubeIframeAPIReady() {
@@ -1044,12 +1075,41 @@
                     playsinline: 1
                 },
                 events: {
+                    'onReady': onPlayerReady,
                     'onStateChange': onPlayerStateChange,
                     'onError': onPlayerError
                 }
             });
 
-            console.log(`✅ Player initialized with video: ${videoId}`);
+            console.log(`✅ Player initializing with video: ${videoId}`);
+        }
+
+        // ====== PLAYER READY ======
+        function onPlayerReady(event) {
+            playerReady = true;
+            console.log('✅ Player is ready!');
+
+            // If there was a pending video index, load it
+            if (window.pendingVideoIndex !== undefined && window.pendingVideoIndex !== null) {
+                const index = window.pendingVideoIndex;
+                const video = filteredVideos[index];
+                if (video) {
+                    player.loadVideoById(video.videoId);
+                    player.playVideo();
+                }
+                window.pendingVideoIndex = undefined;
+            }
+
+            const statusElement = document.getElementById('status');
+            if (!messageActive) {
+                statusElement.innerHTML = '▶ <span>●</span> PLAYING';
+                statusElement.className = '';
+                statusOriginal = statusElement.innerHTML;
+            }
+
+            setTimeout(() => {
+                saveCurrentProgress();
+            }, 3000);
         }
 
         // ====== PLAYER STATE CHANGE ======
@@ -1095,7 +1155,7 @@
 
         // ====== ACTIVATE AUDIO ======
         function activateAudio() {
-            if (player && !soundActivated) {
+            if (playerReady && player && !soundActivated) {
                 player.unMute();
                 soundActivated = true;
 
@@ -1164,7 +1224,7 @@
                 button.style.display = 'none';
             }
 
-            if (player && player.getPlayerState) {
+            if (playerReady && player && player.getPlayerState) {
                 const state = player.getPlayerState();
                 if (state === YT.PlayerState.PLAYING) {
                     statusElement.innerHTML = '▶ <span>●</span> PLAYING';
@@ -1192,17 +1252,15 @@
 
         // ====== AUTOPLAY FALLBACK ======
         setTimeout(() => {
-            if (player && player.getPlayerState && player.getPlayerState() === -1) {
+            if (playerReady && player && player.getPlayerState && player.getPlayerState() === -1) {
                 player.playVideo();
             }
         }, 3000);
 
         // ====== INITIALIZE ======
         window.addEventListener('load', function() {
-            // Load video list first
             loadVideoList();
 
-            // Show audio message after a moment
             setTimeout(() => {
                 showAudioMessage();
             }, 1500);
@@ -1210,14 +1268,16 @@
 
         // ====== SAVE PROGRESS REGULARLY ======
         setInterval(() => {
-            if (player && player.getCurrentTime) {
+            if (playerReady && player && player.getCurrentTime) {
                 saveCurrentProgress();
             }
         }, 5000);
 
         // ====== SAVE PROGRESS BEFORE PAGE UNLOADS ======
         window.addEventListener('beforeunload', function() {
-            saveCurrentProgress();
+            if (playerReady && player) {
+                saveCurrentProgress();
+            }
         });
 
         // ====== NAVIGATION BUTTONS ======
@@ -1259,11 +1319,6 @@
                     selectedCategories.delete(category);
                 }
                 applyFilters();
-                // After filtering, load first video
-                if (filteredVideos.length > 0) {
-                    currentFilteredIndex = 0;
-                    loadFilteredVideo(0);
-                }
             });
         });
 
@@ -1278,10 +1333,6 @@
                 selectedDuration = preset.seconds;
                 durationValue.textContent = preset.label;
                 applyFilters();
-                if (filteredVideos.length > 0) {
-                    currentFilteredIndex = 0;
-                    loadFilteredVideo(0);
-                }
             }
         });
 
@@ -1296,11 +1347,8 @@
             selectedDuration = Infinity;
             durationValue.textContent = '∞ Unlimited';
 
+            // Reset to initial state (exclude audiobooks)
             applyFilters();
-            if (filteredVideos.length > 0) {
-                currentFilteredIndex = 0;
-                loadFilteredVideo(0);
-            }
         });
 
         // ====== DETECT WINDOW RESIZE ======
