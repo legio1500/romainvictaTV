@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Roma Invicta TV - Credits</title>
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="favicon.png">
+
+    <!-- Fonte Cinzel -->
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&display=swap" rel="stylesheet">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-image: url("background.jpg");
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            font-family: 'Cinzel', serif;
+            position: relative;
+            padding: 20px;
+            transition: background-image 0.5s ease;
+        }
+
+        /* Camada escura */
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.65);
+            z-index: 1;
+        }
+
+        /* Container principal */
+        #main-container {
+            max-width: 800px;
+            width: 100%;
+            padding: 35px 30px;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border-radius: 25px;
+            position: relative;
+            z-index: 2;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            max-height: 95vh;
+            overflow-y: auto;
+        }
+
+        /* Scrollbar estilizada */
+        #main-container::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        #main-container::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 10px;
+        }
+
+        #main-container::-webkit-scrollbar-thumb {
+            background: rgba(200, 0, 0, 0.4);
+            border-radius: 10px;
+        }
+
+        /* Título */
+        #titulo {
+            text-align: center;
+            color: #f0e6d3;
+            font-size: 2rem;
+            font-weight: 700;
+            letter-spacing: 5px;
+            text-transform: uppercase;
+            text-shadow: 0 0 40px rgba(200, 0, 0, 0.25);
+            padding-bottom: 15px;
+            border-bottom: 2px solid rgba(200, 0, 0, 0.25);
+            margin-bottom: 25px;
+        }
+
+        #titulo span {
+            color: #dc143c;
+        }
+
+        /* Subtítulo / Descrição */
+        #descricao {
+            text-align: center;
+            color: rgba(255, 255, 255, 0.75);
+            font-size: 0.95rem;
+            line-height: 1.8;
+            letter-spacing: 1px;
+            margin-bottom: 30px;
+            padding: 0 10px;
+            font-weight: 400;
+        }
+
+        #descricao strong {
+            color: #dc143c;
+            font-weight: 700;
+        }
+
+        /* ===== CBOX (AGORA EM PRIMEIRO) ===== */
+        #cbox-section {
+            margin-bottom: 30px;
+        }
+
+        #cbox-section h2 {
+            text-align: center;
+            color: #dc143c;
+            font-size: 1.1rem;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            margin-bottom: 15px;
+            font-weight: 700;
+            text-shadow: 0 0 30px rgba(200, 0, 0, 0.15);
+        }
+
+        #cbox-wrapper {
+            border-radius: 16px;
+            overflow: hidden;
+            border: 1px solid rgba(200, 0, 0, 0.15);
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.3);
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        #cbox-wrapper iframe {
+            display: block;
+            width: 100%;
+            height: 450px;
+            border: none;
+        }
+
+        .chat-note {
+            text-align: center;
+            color: rgba(255, 255, 255, 0.35);
+            font-size: 0.7rem;
+            margin-top: 10px;
+            letter-spacing: 1px;
+        }
+
+        /* ===== SEÇÃO DE CRIADORES (AGORA EMBAIXO) ===== */
+        #creators-section {
+            margin-top: 10px;
+            margin-bottom: 20px;
+        }
+
+        #creators-section h2 {
+            text-align: center;
+            color: #dc143c;
+            font-size: 1.3rem;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            margin-bottom: 15px;
+            font-weight: 700;
+            text-shadow: 0 0 30px rgba(200, 0, 0, 0.15);
+        }
+
+        /* Container com scroll para os links */
+        .creators-scroll {
+            max-height: 200px;
+            overflow-y: auto;
+            padding-right: 8px;
+            border-radius: 12px;
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(200, 0, 0, 0.1);
+            padding: 8px 4px 8px 8px;
+        }
+
+        .creators-scroll::-webkit-scrollbar {
+            width: 5px;
+        }
+
+        .creators-scroll::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 10px;
+        }
+
+        .creators-scroll::-webkit-scrollbar-thumb {
+            background: rgba(200, 0, 0, 0.4);
+            border-radius: 10px;
+        }
+
+        /* Lista vertical de criadores */
+        .creators-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .creator-link {
+            display: flex;
+            align-items: center;
+            padding: 12px 20px;
+            background: rgba(200, 0, 0, 0.08);
+            border-left: 3px solid rgba(200, 0, 0, 0.3);
+            border-radius: 8px;
+            color: #f0e6d3;
+            font-size: 0.85rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-decoration: none;
+            text-transform: uppercase;
+            transition: all 0.3s ease;
+            font-family: 'Cinzel', serif;
+        }
+
+        .creator-link:hover {
+            background: rgba(200, 0, 0, 0.2);
+            border-left-color: #dc143c;
+            transform: translateX(6px);
+            box-shadow: 0 0 30px rgba(200, 0, 0, 0.1);
+            color: #dc143c;
+        }
+
+        .creator-link:active {
+            transform: scale(0.98);
+        }
+
+        .creator-link .link-icon {
+            margin-right: 12px;
+            font-size: 1rem;
+            color: #dc143c;
+        }
+
+        .creator-link .link-name {
+            flex: 1;
+        }
+
+        .creator-link .link-badge {
+            font-size: 0.6rem;
+            color: rgba(255, 255, 255, 0.3);
+            background: rgba(200, 0, 0, 0.15);
+            padding: 2px 10px;
+            border-radius: 20px;
+            letter-spacing: 0.5px;
+        }
+
+        /* Botão de voltar */
+        #back-button {
+            display: block;
+            margin: 15px auto 0;
+            padding: 12px 35px;
+            background: transparent;
+            border: 2px solid rgba(200, 0, 0, 0.3);
+            border-radius: 50px;
+            color: #f0e6d3;
+            font-family: 'Cinzel', serif;
+            font-size: 0.9rem;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        #back-button:hover {
+            background: rgba(200, 0, 0, 0.15);
+            border-color: #dc143c;
+            transform: translateY(-2px);
+            box-shadow: 0 0 30px rgba(200, 0, 0, 0.15);
+            color: #dc143c;
+        }
+
+        .button-wrapper {
+            text-align: center;
+        }
+
+        /* Responsividade */
+        @media (max-width: 768px) {
+            #main-container {
+                padding: 25px 18px;
+                max-height: 90vh;
+            }
+
+            #titulo {
+                font-size: 1.5rem;
+                letter-spacing: 3px;
+            }
+
+            #descricao {
+                font-size: 0.8rem;
+                line-height: 1.6;
+            }
+
+            #cbox-wrapper iframe {
+                height: 350px;
+            }
+
+            .creators-scroll {
+                max-height: 160px;
+            }
+
+            .creator-link {
+                padding: 10px 16px;
+                font-size: 0.7rem;
+                letter-spacing: 0.5px;
+            }
+
+            .creator-link .link-badge {
+                font-size: 0.5rem;
+                padding: 1px 8px;
+            }
+
+            #back-button {
+                padding: 10px 28px;
+                font-size: 0.8rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            #main-container {
+                padding: 20px 14px;
+            }
+
+            #titulo {
+                font-size: 1.2rem;
+                letter-spacing: 2px;
+            }
+
+            #descricao {
+                font-size: 0.7rem;
+            }
+
+            #cbox-section h2,
+            #creators-section h2 {
+                font-size: 0.9rem;
+            }
+
+            #cbox-wrapper iframe {
+                height: 280px;
+            }
+
+            .creators-scroll {
+                max-height: 140px;
+            }
+
+            .creator-link {
+                padding: 8px 12px;
+                font-size: 0.6rem;
+            }
+
+            .creator-link .link-icon {
+                margin-right: 8px;
+                font-size: 0.8rem;
+            }
+
+            .creator-link .link-badge {
+                display: none;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="main-container">
+        <!-- TÍTULO -->
+        <div id="titulo">Roma <span>Invicta</span> TV</div>
+
+        <!-- DESCRIÇÃO -->
+        <div id="descricao">
+            <strong>Roma Invicta TV</strong> aims to bring together in one place Latin content of various types, <strong>24 hours a day, non-stop</strong>:<br>
+            🎵 <strong>Music</strong> · 📣 <strong>Recitation</strong> · 📖 <strong>Audiobooks</strong> · 🎓 <strong>Educational Videos</strong>
+        </div>
+
+        <!-- ===== CBOX (AGORA EM PRIMEIRO) ===== -->
+        <div id="cbox-section">
+            <h2>💬 Suggestions & Contact</h2>
+            <div id="cbox-wrapper">
+                <iframe 
+                    src="https://www3.cbox.ws/box/?boxid=3556176&boxtag=OBarcO" 
+                    width="100%" 
+                    height="450" 
+                    allowtransparency="yes" 
+                    allow="autoplay" 
+                    frameborder="0" 
+                    marginheight="0" 
+                    marginwidth="0" 
+                    scrolling="auto">
+                </iframe>
+            </div>
+            <p class="chat-note">
+                Use the chat to suggest new content or request removal if you are a copyright holder.
+            </p>
+        </div>
+
+        <!-- ===== SEÇÃO DE CRIADORES (AGORA EMBAIXO) ===== -->
+        <div id="creators-section">
+            <h2>⚔️ Our Gratitude to the Creators</h2>
+            <div class="creators-scroll">
+                <div class="creators-list">
+                    <!-- Link 1 -->
+                    <a href="https://www.youtube.com/@Ianthis" target="_blank" class="creator-link">
+                        <span class="link-icon">🎵</span>
+                        <span class="link-name">Ianthis</span>
+                        <span class="link-badge">YouTube</span>
+                    </a>
+
+                    <!-- Link 2 -->
+                    <a href="https://www.youtube.com/@lectionesantiquae3090" target="_blank" class="creator-link">
+                        <span class="link-icon">📜</span>
+                        <span class="link-name">Lectiones Antiquae</span>
+                        <span class="link-badge">YouTube</span>
+                    </a>
+
+                    <!-- ========================================= -->
+                    <!-- 👇 ADICIONE NOVOS CRIADORES AQUI ABAIXO 👇 -->
+                    <!-- ========================================= -->
+
+                    <!-- Exemplo de como adicionar mais:
+                    <a href="https://www.youtube.com/@canal" target="_blank" class="creator-link">
+                        <span class="link-icon">🎶</span>
+                        <span class="link-name">Nome do Canal</span>
+                        <span class="link-badge">YouTube</span>
+                    </a>
+                    -->
+
+                    <!-- Espaço para futuros criadores -->
+                </div>
+            </div>
+        </div>
+
+        <!-- BOTÃO VOLTAR -->
+        <div class="button-wrapper">
+            <a href="index.html" id="back-button">🏛️ Back to TV</a>
+        </div>
+    </div>
+
+    <!-- ====== FUNDO ALEATÓRIO ====== -->
+    <script>
+        (function() {
+            const backgrounds = [
+                "background1.jpg",
+                "background2.jpg",
+                "background3.jpg",
+                "background4.jpg",
+                "background5.jpg",
+                "background6.jpg"
+            ];
+
+            const indiceAleatorio = Math.floor(Math.random() * backgrounds.length);
+            const imagemEscolhida = backgrounds[indiceAleatorio];
+
+            document.body.style.backgroundImage = `url("${imagemEscolhida}")`;
+
+            console.log(`🎨 Fundo selecionado (Credits): ${imagemEscolhida} (${indiceAleatorio + 1}/6)`);
+        })();
+    </script>
+
+</body>
+
+</html>
