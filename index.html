@@ -357,48 +357,32 @@
         })();
 
         // ====== DAY SCHEDULE ======
-        // Add as many playlist IDs as you want per day.
-        // They will play in sequence and loop back to the first when finished.
+        // 6 playlist slots for each day of the week
+        // Leave empty string "" for unused slots
+        // Only the playlist ID is needed (not the full URL)
 
         const schedule = {
             // Sunday
-            0: [
-                "PLAYLIST_ID_SUNDAY_1",
-                "PLAYLIST_ID_SUNDAY_2",
-                "PLAYLIST_ID_SUNDAY_3"
-            ],
+            0: ["", "", "", "", "", ""],
             // Monday
-            1: [
-                "PLAYLIST_ID_MONDAY_1",
-                "PLAYLIST_ID_MONDAY_2"
-            ],
+            1: ["", "", "", "", "", ""],
             // Tuesday
-            2: [
-                "PLAYLIST_ID_TUESDAY_1",
-                "PLAYLIST_ID_TUESDAY_2",
-                "PLAYLIST_ID_TUESDAY_3",
-                "PLAYLIST_ID_TUESDAY_4"
-            ],
+            2: ["", "", "", "", "", ""],
             // Wednesday
-            3: [
-                "PLAYLIST_ID_WEDNESDAY_1"
-            ],
+            3: ["", "", "", "", "", ""],
             // Thursday
             4: [
-                "PLGr-y_RTcNnv14zEh_rYVBrQLYL0SyZho&pp=sAgC",
-                "PLGr-y_RTcNnsmduQh9L60psB1k2XTXUdA&pp=sAgC"
+                "PLGr-y_RTcNnv14zEh_rYVBrQLYL0SyZho",
+                "PLGr-y_RTcNnsmduQh9L60psB1k2XTXUdA",
+                "",
+                "",
+                "",
+                ""
             ],
             // Friday
-            5: [
-                "PLAYLIST_ID_FRIDAY_1",
-                "PLAYLIST_ID_FRIDAY_2",
-                "PLAYLIST_ID_FRIDAY_3"
-            ],
+            5: ["", "", "", "", "", ""],
             // Saturday
-            6: [
-                "PLAYLIST_ID_SATURDAY_1",
-                "PLAYLIST_ID_SATURDAY_2"
-            ]
+            6: ["", "", "", "", "", ""]
         };
 
         // Day names
@@ -412,16 +396,22 @@
             "Saturday"
         ];
 
+        // ====== FUNCTION TO FILTER EMPTY PLAYLISTS ======
+        function getValidPlaylists(day) {
+            const allPlaylists = schedule[day] || [];
+            return allPlaylists.filter(id => id && id.trim() !== "");
+        }
+
         // ====== GET TODAY'S PLAYLISTS ======
         const today = new Date().getDay();
-        const playlistsForToday = schedule[today] || [];
+        const playlistsForToday = getValidPlaylists(today);
         const dayName = dayNames[today];
 
         // Show day indicator
         document.getElementById('day-name').textContent = dayName;
 
         console.log(`📅 Today is ${dayName}`);
-        console.log(`📋 Playlists for today: ${playlistsForToday.length}`);
+        console.log(`📋 Valid playlists for today: ${playlistsForToday.length}`);
 
         // ====== PLAYER VARIABLES ======
         let currentPlaylistIndex = 0;
